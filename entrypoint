@@ -1,0 +1,43 @@
+#!/bin/sh
+
+if [ -z "$URL" ]; then
+    echo "URL not given, abort!"
+    exit 1
+fi
+
+if [ -z "$INTERVAL" ]; then
+    echo "INTERVAL not given, using default 300"
+    INTERVAL=300
+fi
+
+if [ -z "$TIMEOUT" ]; then
+    echo "TIMEOUT not given, using default 60"
+    TIMEOUT=60
+fi
+
+if [ "$REDIRECT" = "true" ]; then
+    REDIRECT="-L"
+fi
+
+if [ "$IGNORESSL" = "true" ]; then
+    IGNORESSL="-k"
+fi
+
+# Show Respone Body and add a Newline after Body
+if [ ! "$SHOWRESPONSE" = "true" ]; then
+    SHOWRESPONSE="-o /dev/null"
+else
+    SHOWRESPONSE=""
+    maybenewline="\n"
+fi
+
+echo "---"
+# Infinite loop
+while true; do
+    curl \
+        -m "$TIMEOUT" \
+        -w "${maybenewline}%{url_effective} | %{http_code} | %{time_total}\n" \
+        -s $REDIRECT $IGNORESSL $SHOWRESPONSE \
+        "$URL"
+    sleep "$INTERVAL"
+done
